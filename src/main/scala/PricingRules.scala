@@ -5,9 +5,9 @@ class PricingRules {
 
   private var pricingRules:Map[Item,PricingRule] = Map()
 
-  def setNewPricingRule(item:Item, pricingRule:PricingRule):Unit = ???
-  def getPricingRule(item:Item):PricingRule = ???
-  def getAllPricingRules:Map[Item,PricingRule] = ???
+  def setNewPricingRule(item:Item, pricingRule:PricingRule):Unit = pricingRules += (item -> pricingRule)
+  def getPricingRule(item:Item):Option[PricingRule] = pricingRules.get(item)
+  def getAllPricingRules:Map[Item,PricingRule] = pricingRules
 }
 
 

@@ -5,6 +5,15 @@ import org.scalatest._
 
 class UnitTest extends FlatSpec with Matchers {
 
+  override def withFixture(test: NoArgTest) = {
+
+    // This fixture resets the existingItems set between tests
+    super.withFixture(test) match {
+      case outcome:Outcome => Item.existingItems = Set[Item]()
+        outcome
+    }
+  }
+
   "Items" should "have unique SKUs" in {
     new Item("A")
 
@@ -56,6 +65,12 @@ class UnitTest extends FlatSpec with Matchers {
     pricingRules.getPricingRule(itemA) should be (normalPricingRuleItemA)
   }
 
+  "Pricing Rules" should "return a None option for items not existing in the set" in {
+    val itemA = new Item("A")
+    val pricingRules = new PricingRules
+    pricingRules.getPricingRule(itemA) should be (None)
+  }
+
   "Pricing Rules" should "accept the price rule for an item and include it in complete set" in {
     val itemA = new Item("A")
     val normalPricingRuleItemA = new NormalPricingRule(50)
@@ -70,13 +85,13 @@ class UnitTest extends FlatSpec with Matchers {
     val pricingRules = new PricingRules
     pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
     pricingRules.getPricingRule(itemA) should be (normalPricingRuleItemA)
-    pricingRules.getPricingRule(itemA).unitPrice should be (50)
+    pricingRules.getPricingRule(itemA).get.unitPrice should be (50)
 
     val newNormalPricingRuleItemA = new NormalPricingRule(10)
 
     pricingRules.setNewPricingRule(itemA, newNormalPricingRuleItemA)
     pricingRules.getPricingRule(itemA) should be (newNormalPricingRuleItemA)
-    pricingRules.getPricingRule(itemA).unitPrice should be (10)
+    pricingRules.getPricingRule(itemA).get.unitPrice should be (10)
 
   }
 
