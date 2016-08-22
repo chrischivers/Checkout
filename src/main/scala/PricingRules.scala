@@ -3,15 +3,14 @@
  */
 class PricingRules {
 
-  private val pricingRules:Map[String,PricingRule] = ???
+  private val pricingRules:Map[Item,PricingRule] = ???
 
-  def setNewPricingRule = ???
-  def getPricingRule = ???
-  def getAllPricingRules = ???
+  def setNewPricingRule(item:Item, pricingRule:PricingRule):Unit = ???
+  def getPricingRule(item:Item):PricingRule = ???
+  def getAllPricingRules:Map[Item,PricingRule] = ???
 }
 
-
-case class PricingRule(item:Item, unitPrice:Int, specialPrice:Option[SpecialMultiPrice])
+case class PricingRule(unitPrice:Int, specialPrice:Option[SpecialMultiPrice])
 
 case class SpecialMultiPrice(n:Int, y:Int)
 
