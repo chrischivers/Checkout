@@ -1,5 +1,8 @@
 import org.scalatest._
 
+/**
+ * The unit tests for the Checkout
+ */
 class UnitTest extends FlatSpec with Matchers {
 
   override def withFixture(test: NoArgTest) = {
