@@ -1,6 +1,3 @@
-/**
- * Created by chrischivers on 22/08/16.
- */
 class PricingRules {
 
   private var pricingRules:Map[Item,PricingRule] = Map()
@@ -17,5 +14,7 @@ trait PricingRule {
 
 case class NormalPricingRule(unitPrice:Int) extends PricingRule
 
-case class SpecialMultiPriceRule(unitPrice:Int, n:Int, y:Int) extends PricingRule
+case class SpecialMultiPriceRule(unitPrice:Int, n:Int, y:Int) extends PricingRule {
+  if (unitPrice > y) throw new IllegalArgumentException("the unit price cannot be more than the price of the special multibuy price")
+}
 

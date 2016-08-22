@@ -1,8 +1,5 @@
-/**
- * Created by chrischivers on 22/08/16.
- */
-
 case class Item(sku:String) {
+
   //Checks SKU is in valid format
   if(sku.length > 1 || sku.charAt(0).isLower || !sku.charAt(0).isLetter)
     throw new IllegalArgumentException("Invalid SKU format. SKY must be single capital letter.")
@@ -12,6 +9,7 @@ case class Item(sku:String) {
   else Item.existingItems += this
 }
 
+// Companion object holds the set of existingItems to ensure no two items are created sharing the same SKU
 object Item {
   var existingItems = Set[Item]()
 }

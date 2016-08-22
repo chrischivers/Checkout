@@ -1,6 +1,3 @@
-/**
- * Created by chrischivers on 22/08/16.
- */
 import org.scalatest._
 
 class UnitTest extends FlatSpec with Matchers {
@@ -62,7 +59,7 @@ class UnitTest extends FlatSpec with Matchers {
     val normalPricingRuleItemA = new NormalPricingRule(50)
     val pricingRules = new PricingRules
     pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
-    pricingRules.getPricingRule(itemA) should be (normalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA).get should be (normalPricingRuleItemA)
   }
 
   "Pricing Rules" should "return a None option for items not existing in the set" in {
@@ -84,13 +81,13 @@ class UnitTest extends FlatSpec with Matchers {
     val normalPricingRuleItemA = new NormalPricingRule(50)
     val pricingRules = new PricingRules
     pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
-    pricingRules.getPricingRule(itemA) should be (normalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA).get should be (normalPricingRuleItemA)
     pricingRules.getPricingRule(itemA).get.unitPrice should be (50)
 
     val newNormalPricingRuleItemA = new NormalPricingRule(10)
 
     pricingRules.setNewPricingRule(itemA, newNormalPricingRuleItemA)
-    pricingRules.getPricingRule(itemA) should be (newNormalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA).get should be (newNormalPricingRuleItemA)
     pricingRules.getPricingRule(itemA).get.unitPrice should be (10)
 
   }
@@ -106,7 +103,7 @@ class UnitTest extends FlatSpec with Matchers {
     val normalPricingRuleItemB = new NormalPricingRule(30)
     pricingRules.setNewPricingRule(itemB, normalPricingRuleItemB)
 
-    val checkout = Supermarket.getNewCheckout(pricingRules)
+    val checkout = new Checkout(pricingRules)
     checkout.scanItem(itemA)
     checkout.scanItem(itemB)
     checkout.getTotal should be (80)
@@ -120,7 +117,7 @@ class UnitTest extends FlatSpec with Matchers {
     pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
 
 
-    val checkout = Supermarket.getNewCheckout(pricingRules)
+    val checkout = new Checkout(pricingRules)
     checkout.scanItem(itemA)
     checkout.scanItem(itemA)
     checkout.scanItem(itemA)
@@ -134,7 +131,7 @@ class UnitTest extends FlatSpec with Matchers {
     val specialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
     pricingRules.setNewPricingRule(itemA, specialMultiPriceItemA)
 
-    val checkout = Supermarket.getNewCheckout(pricingRules)
+    val checkout = new Checkout(pricingRules)
     checkout.scanItem(itemA)
     checkout.scanItem(itemA)
     checkout.scanItem(itemA)
@@ -152,7 +149,7 @@ class UnitTest extends FlatSpec with Matchers {
     val normalPricingRuleItemB = new NormalPricingRule(40)
     pricingRules.setNewPricingRule(itemB, normalPricingRuleItemB)
 
-    val checkout = Supermarket.getNewCheckout(pricingRules)
+    val checkout = new Checkout(pricingRules)
     checkout.scanItem(itemA)
     checkout.scanItem(itemB)
     checkout.scanItem(itemA)
@@ -161,7 +158,7 @@ class UnitTest extends FlatSpec with Matchers {
     checkout.getTotal should be (210)
   }
 
-  "Checkout" should "provide the correct total based multiple Special Prices in one transaction" in {
+  "Checkout" should "provide the correct total based on multiple Special Prices in one transaction" in {
     val pricingRules = new PricingRules
 
     val itemA = new Item("A")
@@ -172,12 +169,55 @@ class UnitTest extends FlatSpec with Matchers {
     val specialMultiPriceItemB = new SpecialMultiPriceRule(unitPrice = 30, n = 2, y = 45)
     pricingRules.setNewPricingRule(itemB, specialMultiPriceItemB)
 
-    val checkout = Supermarket.getNewCheckout(pricingRules)
+    val checkout = new Checkout(pricingRules)
     checkout.scanItem(itemA)
     checkout.scanItem(itemB)
     checkout.scanItem(itemA)
     checkout.scanItem(itemB)
     checkout.scanItem(itemA)
     checkout.getTotal should be (175)
+  }
+
+  "Checkout" should "provide the correct total based on purchases of the same item exceeding the special price requirement (special price rule applied only once)" in {
+    val pricingRules = new PricingRules
+
+    val itemA = new Item("A")
+    val specialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
+    pricingRules.setNewPricingRule(itemA, specialMultiPriceItemA)
+
+    val checkout = new Checkout(pricingRules)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.getTotal should be (180)
+  }
+
+  "Checkout" should "provide the correct total based on purchases of the same item exceeding the special price requirement (special price rule applied more than once)" in {
+    val pricingRules = new PricingRules
+
+    val itemA = new Item("A")
+    val specialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
+    pricingRules.setNewPricingRule(itemA, specialMultiPriceItemA)
+
+    val checkout = new Checkout(pricingRules)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.getTotal should be (260)
+  }
+
+
+  "Checkout" should "not accept a scanned item if a pricing rule does not exist for that item" in {
+    val pricingRules = new PricingRules
+    val itemA = new Item("A")
+
+    val checkout = new Checkout(pricingRules)
+    a[IllegalArgumentException] should be thrownBy {
+      checkout.scanItem(itemA)
+    }
   }
 }
