@@ -10,7 +10,12 @@ class PricingRules {
   def getAllPricingRules:Map[Item,PricingRule] = ???
 }
 
-case class PricingRule(unitPrice:Int, specialPrice:Option[SpecialMultiPrice])
 
-case class SpecialMultiPrice(n:Int, y:Int)
+trait PricingRule {
+  val unitPrice:Int
+}
+
+case class NormalPricingRule(unitPrice:Int) extends PricingRule
+
+case class SpecialMultiPriceRule(unitPrice:Int, n:Int, y:Int) extends PricingRule
 
