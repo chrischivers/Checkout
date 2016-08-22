@@ -3,8 +3,10 @@
  */
 
 protected class Checkout(pricingRules:PricingRules) {
+  
+  private var scannedItems:List[Item] = List()
 
-  def readItem(item:Item) = ???
+  def scanItem(item:Item) = scannedItems = scannedItems :+ item
   def getTotal:Int = ???
 
 

@@ -3,7 +3,7 @@
  */
 class PricingRules {
 
-  private val pricingRules:Map[Item,PricingRule] = ???
+  private var pricingRules:Map[Item,PricingRule] = Map()
 
   def setNewPricingRule(item:Item, pricingRule:PricingRule):Unit = ???
   def getPricingRule(item:Item):PricingRule = ???

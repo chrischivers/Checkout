@@ -8,7 +8,7 @@ class UnitTest extends FlatSpec with Matchers {
   "Items" should "have unique SKUs" in {
     new Item("A")
 
-    a[IllegalStateException] should be thrownBy {
+    a[IllegalArgumentException] should be thrownBy {
       new Item("A")
     }
   }
@@ -28,68 +28,72 @@ class UnitTest extends FlatSpec with Matchers {
   }
   "Pricing rules" should "accept a specialPrice if available" in {
     val itemA = new Item("A")
-    val pricingRuleItemA = new SpecialMultiPriceRule(unitPrice = 60, n = 3, y = 100) //3 for 100
+    val specialPricingRuleItemA = new SpecialMultiPriceRule(unitPrice = 60, n = 3, y = 100) //3 for 100
     val pricingRules = new PricingRules
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
+    pricingRules.setNewPricingRule(itemA, specialPricingRuleItemA)
   }
 
   "Pricing rules" should "accept a normal price if special price not available" in {
     val itemA = new Item("A")
-    val pricingRuleItemA = new NormalPricingRule(50)
+    val normalPricingRuleItemA = new NormalPricingRule(50)
     val pricingRules = new PricingRules
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
+    pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
   }
 
   "Special Multi Price Discounts" should "be be priced higher than the unit cost of a single item" in {
     val itemA = new Item("A")
 
-    a[IllegalStateException] should be thrownBy {
+    a[IllegalArgumentException] should be thrownBy {
       val multiPrice = new SpecialMultiPriceRule(unitPrice = 150, n = 3, y = 100) //150 each, 3 for 100
     }
   }
 
   "Pricing Rules" should "accept the price rule for an item and allow it to be retrieved" in {
     val itemA = new Item("A")
-    val pricingRuleItemA = new NormalPricingRule(50)
+    val normalPricingRuleItemA = new NormalPricingRule(50)
     val pricingRules = new PricingRules
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
-    pricingRules.getPricingRule(itemA) should be (pricingRuleItemA)
+    pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA) should be (normalPricingRuleItemA)
   }
 
   "Pricing Rules" should "accept the price rule for an item and include it in complete set" in {
     val itemA = new Item("A")
-    val pricingRuleItemA = new NormalPricingRule(50)
+    val normalPricingRuleItemA = new NormalPricingRule(50)
     val pricingRules = new PricingRules
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
-    pricingRules.getAllPricingRules(itemA) should be (pricingRuleItemA)
+    pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
+    pricingRules.getAllPricingRules(itemA) should be (normalPricingRuleItemA)
   }
 
-  "Pricing Rules" should "have one entry per item only" in {
+  "Pricing Rules" should "have one entry per item only. A new entry for an existing item should overwrite the previous rule." in {
     val itemA = new Item("A")
-    val pricingRuleItemA = new NormalPricingRule(50)
-    val pricingRuleItemADuplicate = new NormalPricingRule(10)
+    val normalPricingRuleItemA = new NormalPricingRule(50)
     val pricingRules = new PricingRules
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
+    pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA) should be (normalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA).unitPrice should be (50)
 
-    a[IllegalStateException] should be thrownBy {
-      pricingRules.setNewPricingRule(itemA, pricingRuleItemADuplicate)
-    }
+    val newNormalPricingRuleItemA = new NormalPricingRule(10)
+
+    pricingRules.setNewPricingRule(itemA, newNormalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA) should be (newNormalPricingRuleItemA)
+    pricingRules.getPricingRule(itemA).unitPrice should be (10)
+
   }
 
   "Checkout" should "provide the correct total based on the pricing rules (no special offers)" in {
     val pricingRules = new PricingRules
 
     val itemA = new Item("A")
-    val pricingRuleItemA = new NormalPricingRule(50)
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
+    val normalPricingRuleItemA = new NormalPricingRule(50)
+    pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
 
     val itemB = new Item("B")
-    val pricingRuleItemB = new NormalPricingRule(30)
-    pricingRules.setNewPricingRule(itemB, pricingRuleItemB)
+    val normalPricingRuleItemB = new NormalPricingRule(30)
+    pricingRules.setNewPricingRule(itemB, normalPricingRuleItemB)
 
     val checkout = Supermarket.getNewCheckout(pricingRules)
-    checkout.readItem(itemA)
-    checkout.readItem(itemB)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemB)
     checkout.getTotal should be (80)
   }
 
@@ -97,14 +101,14 @@ class UnitTest extends FlatSpec with Matchers {
     val pricingRules = new PricingRules
 
     val itemA = new Item("A")
-    val pricingRuleItemA = new NormalPricingRule(50)
-    pricingRules.setNewPricingRule(itemA, pricingRuleItemA)
+    val normalPricingRuleItemA = new NormalPricingRule(50)
+    pricingRules.setNewPricingRule(itemA, normalPricingRuleItemA)
 
 
     val checkout = Supermarket.getNewCheckout(pricingRules)
-    checkout.readItem(itemA)
-    checkout.readItem(itemA)
-    checkout.readItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
     checkout.getTotal should be (150)
   }
 
@@ -112,14 +116,53 @@ class UnitTest extends FlatSpec with Matchers {
     val pricingRules = new PricingRules
 
     val itemA = new Item("A")
-    val SpecialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
-    pricingRules.setNewPricingRule(itemA, SpecialMultiPriceItemA)
-
+    val specialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
+    pricingRules.setNewPricingRule(itemA, specialMultiPriceItemA)
 
     val checkout = Supermarket.getNewCheckout(pricingRules)
-    checkout.readItem(itemA)
-    checkout.readItem(itemA)
-    checkout.readItem(itemA)
-    checkout.getTotal should be (150)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemA)
+    checkout.getTotal should be (130)
+  }
+
+  "Checkout" should "provide the correct total based on the pricing rules (with special offers) even if scanned in different order" in {
+    val pricingRules = new PricingRules
+
+    val itemA = new Item("A")
+    val specialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
+    pricingRules.setNewPricingRule(itemA, specialMultiPriceItemA)
+
+    val itemB = new Item("B")
+    val normalPricingRuleItemB = new NormalPricingRule(40)
+    pricingRules.setNewPricingRule(itemB, normalPricingRuleItemB)
+
+    val checkout = Supermarket.getNewCheckout(pricingRules)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemB)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemB)
+    checkout.scanItem(itemA)
+    checkout.getTotal should be (210)
+  }
+
+  "Checkout" should "provide the correct total based multiple Special Prices in one transaction" in {
+    val pricingRules = new PricingRules
+
+    val itemA = new Item("A")
+    val specialMultiPriceItemA = new SpecialMultiPriceRule(unitPrice = 50, n = 3, y = 130)
+    pricingRules.setNewPricingRule(itemA, specialMultiPriceItemA)
+
+    val itemB = new Item("B")
+    val specialMultiPriceItemB = new SpecialMultiPriceRule(unitPrice = 30, n = 2, y = 45)
+    pricingRules.setNewPricingRule(itemB, specialMultiPriceItemB)
+
+    val checkout = Supermarket.getNewCheckout(pricingRules)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemB)
+    checkout.scanItem(itemA)
+    checkout.scanItem(itemB)
+    checkout.scanItem(itemA)
+    checkout.getTotal should be (175)
   }
 }
